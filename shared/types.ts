@@ -63,6 +63,17 @@ export interface GrandFinalGame {
   time: number | null;
 }
 
+export interface AwardRecipient {
+  teamKey: string | null;
+  awardee: string | null;
+}
+
+export interface Award {
+  name: string;
+  awardType: number;
+  recipients: AwardRecipient[];
+}
+
 export interface DivisionEvent {
   key: string;
   name: string;
@@ -71,6 +82,7 @@ export interface DivisionEvent {
   alliances: Alliance[];
   slots: Slot[];
   grandFinal: { games: GrandFinalGame[] };
+  awards: Award[];
 }
 
 export interface Snapshot {

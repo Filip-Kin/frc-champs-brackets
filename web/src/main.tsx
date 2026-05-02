@@ -6,6 +6,7 @@ import "./styles/global.css";
 import "./styles/layout.css";
 import "./styles/bracket.css";
 import "./styles/filters.css";
+import "./styles/awards.css";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("missing #root");

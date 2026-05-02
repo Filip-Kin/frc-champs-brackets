@@ -3,6 +3,7 @@ import {
   BRACKET_SLOTS,
   type Alliance,
   type AllianceStatus,
+  type Award,
   type DivisionEvent,
   type GrandFinalGame,
   type SideInfo,
@@ -149,11 +150,18 @@ interface TBAMatch {
   predicted_time: number | null;
 }
 
+interface TBAAward {
+  name: string;
+  award_type: number;
+  recipient_list: { team_key: string | null; awardee: string | null }[];
+}
+
 export async function resolveEvent(eventKey: string): Promise<DivisionEvent> {
-  const [event, alliancesRaw, matchesRaw] = await Promise.all([
+  const [event, alliancesRaw, matchesRaw, awardsRaw] = await Promise.all([
     tbaFetch<TBAEvent>(`/event/${eventKey}`),
     tbaFetch<TBAAlliance[]>(`/event/${eventKey}/alliances`).catch(() => [] as TBAAlliance[]),
     tbaFetch<TBAMatch[]>(`/event/${eventKey}/matches`).catch(() => [] as TBAMatch[]),
+    tbaFetch<TBAAward[]>(`/event/${eventKey}/awards`).catch(() => [] as TBAAward[]),
   ]);
 
   const alliances: Alliance[] = (alliancesRaw ?? []).map((a, i) => ({
@@ -165,8 +173,17 @@ export async function resolveEvent(eventKey: string): Promise<DivisionEvent> {
     double_elim_round: a.status?.double_elim_round ?? null,
   }));
 
+  const awards: Award[] = (awardsRaw ?? []).map((a) => ({
+    name: a.name,
+    awardType: a.award_type,
+    recipients: a.recipient_list.map((r) => ({ teamKey: r.team_key, awardee: r.awardee })),
+  }));
+
   const allTeamKeys = new Set<string>();
   for (const a of alliances) for (const t of a.picks) allTeamKeys.add(t);
+  for (const a of awards) for (const r of a.recipients) {
+    if (r.teamKey) allTeamKeys.add(r.teamKey);
+  }
 
   const matchesByKey: Record<string, TBAMatch> = {};
   const finals: TBAMatch[] = [];
@@ -233,6 +250,7 @@ export async function resolveEvent(eventKey: string): Promise<DivisionEvent> {
     alliances,
     slots,
     grandFinal,
+    awards,
   };
 }
 
