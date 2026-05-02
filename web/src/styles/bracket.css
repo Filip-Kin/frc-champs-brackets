@@ -4,7 +4,7 @@
   background: var(--bg-2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 6px 8px 8px 8px;
+  padding: 6px 10px 10px 10px;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -22,7 +22,7 @@
   align-items: center;
   padding: 0 2px 6px 2px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .bracket-name {
@@ -40,59 +40,144 @@
   font-weight: 700;
 }
 
-/* Mirrored brackets (right column on wide screens) advance toward the page
-   center. Columns are reversed in JSX; we just flip the header. */
-.bracket-mirror .bracket-header {
-  flex-direction: row-reverse;
+.bracket-mirror .bracket-header { flex-direction: row-reverse; }
+
+/* #endregion */
+
+/* #region Bracket layout: 5 cols x 14 rows, classic double-elim positioning
+
+   col 1: UB R1 (rows 1,3,5,7) + LB R1 (rows 10,12)
+   col 2: UB R2 (rows 2,6) + LB R2 (rows 10,12)
+   col 3: UB Final (row 4) + LB R3 (row 11)
+   col 4: LB Final (row 11)
+   col 5: GF (centered)
+
+   Mirrored brackets swap the columns via CSS variables so all GFs sit
+   in the middle of the page.
+*/
+
+.bracket-layout {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1.1fr)
+    minmax(0, 1.1fr) minmax(0, 1.3fr);
+  grid-auto-rows: min-content;
+  column-gap: 14px;
+  row-gap: 6px;
+  position: relative;
+
+  --col-r1: 1;
+  --col-r2: 2;
+  --col-rf: 3;
+  --col-lbf: 4;
+  --col-gf: 5;
+}
+
+.bracket-mirror .bracket-layout {
+  --col-r1: 5;
+  --col-r2: 4;
+  --col-rf: 3;
+  --col-lbf: 2;
+  --col-gf: 1;
+}
+
+.match-slot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.match-slot-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.match-label {
+  font-size: 0.65em;
+  font-style: italic;
+  color: var(--fg-3);
+  padding: 0 4px;
+  letter-spacing: 0.3px;
+}
+
+.bracket-mirror .match-label { text-align: right; }
+
+/* Upper bracket placement */
+.match-slot[data-set="1"]  { grid-column: var(--col-r1); grid-row: 1; }
+.match-slot[data-set="2"]  { grid-column: var(--col-r1); grid-row: 3; }
+.match-slot[data-set="3"]  { grid-column: var(--col-r1); grid-row: 5; }
+.match-slot[data-set="4"]  { grid-column: var(--col-r1); grid-row: 7; }
+.match-slot[data-set="7"]  { grid-column: var(--col-r2); grid-row: 2; }
+.match-slot[data-set="8"]  { grid-column: var(--col-r2); grid-row: 6; }
+.match-slot[data-set="11"] { grid-column: var(--col-rf); grid-row: 4; }
+
+/* Lower bracket placement */
+.match-slot[data-set="5"]  { grid-column: var(--col-r1); grid-row: 10; }
+.match-slot[data-set="6"]  { grid-column: var(--col-r1); grid-row: 12; }
+.match-slot[data-set="9"]  { grid-column: var(--col-r2); grid-row: 10; }
+.match-slot[data-set="10"] { grid-column: var(--col-r2); grid-row: 12; }
+.match-slot[data-set="12"] { grid-column: var(--col-rf); grid-row: 11; }
+.match-slot[data-set="13"] { grid-column: var(--col-lbf); grid-row: 11; }
+
+/* Grand final spans the full bracket vertically and centers itself */
+.match-slot[data-set="gf"] {
+  grid-column: var(--col-gf);
+  grid-row: 1 / span 12;
+  align-self: center;
 }
 
 /* #endregion */
 
-/* #region Bracket layout - 4 cols, GF spans both rows in col 4 */
+/* #region Connector lines between matches.
+   Each match has a stub line going to the NEXT round (right by default,
+   left when mirrored). Round-1 matches in a pair (e.g. sets 1 and 2)
+   share a vertical connector that joins their stubs at their parent
+   (set 7) match's row. We approximate that with a vertical bar on the
+   parent match's leading edge.
+*/
 
-.bracket-layout {
-  display: grid;
-  grid-template-columns: 1.6fr 1.4fr 1.4fr 1.6fr;
-  grid-template-rows: auto auto;
-  grid-auto-flow: column;
-  gap: 6px 5px;
-  overflow-x: auto;
+.match-slot::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 1px;
+  background: var(--fg-3);
+  opacity: 0.4;
+  pointer-events: none;
 }
+.bracket .match-slot::after { right: -13px; }
+.bracket-mirror .match-slot::after { right: auto; left: -13px; }
 
-.bracket-col { display: contents; }
+/* Suppress the outgoing stub on terminal matches */
+.match-slot[data-set="13"]::after,
+.match-slot[data-set="gf"]::after { display: none; }
 
-.bracket-col-gf > .bracket-cell {
-  grid-row: 1 / span 2;
-  align-self: center;
+/* Vertical bar between a pair of feeder matches. We attach it to the
+   parent match (e.g. set 7 connects sets 1+2) using ::before. */
+.match-slot::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  width: 1px;
+  height: 200%;
+  background: var(--fg-3);
+  opacity: 0.4;
+  pointer-events: none;
 }
+.bracket .match-slot::before { left: -13px; }
+.bracket-mirror .match-slot::before { left: auto; right: -13px; }
 
-.bracket-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.bracket-cell-empty {
-  visibility: hidden;
-  min-height: 1px;
-}
-
-.bracket-cell-label {
-  font-size: 0.65em;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--fg-3);
-  padding: 0 2px;
-  margin-bottom: 0;
-}
-
-.bracket-mirror .bracket-cell-label {
-  text-align: right;
-}
-
-@media (max-width: 800px) {
-  .bracket-mirror .bracket-cell-label { text-align: left; }
+/* Only later-round matches receive the vertical connector */
+.match-slot[data-set="1"]::before,
+.match-slot[data-set="2"]::before,
+.match-slot[data-set="3"]::before,
+.match-slot[data-set="4"]::before,
+.match-slot[data-set="5"]::before,
+.match-slot[data-set="6"]::before {
+  display: none;
 }
 
 /* #endregion */
@@ -174,7 +259,7 @@
 
 /* #endregion */
 
-/* #region Team cell (now stacked one per row inside an alliance) */
+/* #region Team cell (one per row inside an alliance) */
 
 .team-cell {
   display: flex;
@@ -188,9 +273,7 @@
   border-radius: 2px;
 }
 
-.team-cell:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
+.team-cell:hover { background: rgba(255, 255, 255, 0.06); }
 
 .team-cell-playing .team-num { font-weight: 700; }
 .team-cell-backup .team-num { font-weight: 400; color: var(--fg-2); }
