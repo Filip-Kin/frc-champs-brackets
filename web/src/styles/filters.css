@@ -6,13 +6,6 @@
   background: var(--bg-2);
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
-  position: sticky;
-  top: 49px;
-  z-index: 15;
-}
-
-@media (max-width: 800px) {
-  .filters { top: auto; position: static; }
 }
 
 .region-select {
