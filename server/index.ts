@@ -40,24 +40,25 @@ async function serveStatic(pathname: string): Promise<Response> {
 }
 
 function sseStream(): Response {
+  let controllerRef: ReadableStreamDefaultController<Uint8Array> | null = null;
+  let ka: ReturnType<typeof setInterval> | null = null;
+
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
+      controllerRef = controller;
       controller.enqueue(encoder.encode(": connected\n\n"));
       addSseClient(controller);
-      const ka = setInterval(() => {
+      ka = setInterval(() => {
         try {
           controller.enqueue(encoder.encode(": ka\n\n"));
         } catch {
-          clearInterval(ka);
+          if (ka) clearInterval(ka);
         }
       }, 25000);
-      // attach cleanup hook to controller (closure)
-      (controller as unknown as { _ka: ReturnType<typeof setInterval> })._ka = ka;
     },
-    cancel(controller) {
-      const ctrl = controller as unknown as { _ka?: ReturnType<typeof setInterval> };
-      if (ctrl._ka) clearInterval(ctrl._ka);
-      removeSseClient(controller as unknown as ReadableStreamDefaultController<Uint8Array>);
+    cancel() {
+      if (ka) clearInterval(ka);
+      if (controllerRef) removeSseClient(controllerRef);
     },
   });
   return new Response(stream, {
