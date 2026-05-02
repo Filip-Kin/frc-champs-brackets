@@ -1,16 +1,28 @@
 {
   "name": "frc-champs-brackets",
-  "version": "1.0.0",
-  "description": "Live FRC World Championship bracket display from TBA",
-  "main": "server.js",
+  "version": "2.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "dev:server": "bun --watch run server/index.ts",
+    "dev:web": "bun --bun x vite --config web/vite.config.ts",
+    "dev": "bun run dev:server & bun run dev:web",
+    "build": "bun --bun x vite build --config web/vite.config.ts",
+    "start": "bun run server/index.ts",
+    "fetch-flags": "bun run scripts/fetch-state-flags.ts",
+    "typecheck": "bun --bun x tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "flag-icons": "^7.2.3"
   },
-  "engines": {
-    "node": ">=20"
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/bun": "^1.1.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.0"
   }
 }
