@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { DivisionEvent, Slot, Team } from "@shared/types.ts";
+import type { Alliance, DivisionEvent, Slot, Team } from "@shared/types.ts";
 import { COLUMNS, buildGrandFinalSlot, isRoundDecided } from "../lib/bracket.ts";
 import { Match } from "./Match.tsx";
 
@@ -15,6 +15,9 @@ export function Bracket({ event, teams, selectedTeams, hideDecided, mirror = fal
   const winner = event.alliances.find((a) => a.status === "won") ?? null;
   const filterActive = selectedTeams.size > 0;
 
+  const alliancesBySeed = new Map<number, Alliance>();
+  for (const a of event.alliances) alliancesBySeed.set(a.seed, a);
+
   const isInFilter = (slot: Slot): boolean =>
     [...slot.red.teams, ...slot.blue.teams].some((t) => selectedTeams.has(t));
 
@@ -29,6 +32,23 @@ export function Bracket({ event, teams, selectedTeams, hideDecided, mirror = fal
       </header>
       <div className="bracket-layout">
         {cols.map((col) => {
+          if (col.gfSpan) {
+            return (
+              <div key={col.index} className="bracket-col bracket-col-gf">
+                <div className="bracket-cell">
+                  <div className="bracket-cell-label">Final</div>
+                  <Match
+                    slot={gfSlot}
+                    teams={teams}
+                    alliancesBySeed={alliancesBySeed}
+                    filterActive={filterActive}
+                    isInFilter={isInFilter}
+                  />
+                </div>
+              </div>
+            );
+          }
+
           const upperDecided = col.upper && col.upper.round !== "GF" && isRoundDecided(event.slots, col.upper.sets);
           const lowerDecided = col.lower && isRoundDecided(event.slots, col.lower.sets);
           const hideUpper = hideDecided && upperDecided;
@@ -39,16 +59,6 @@ export function Bracket({ event, teams, selectedTeams, hideDecided, mirror = fal
               <div className="bracket-cell">
                 {!col.upper || hideUpper ? (
                   <div className="bracket-cell-empty" aria-hidden="true" />
-                ) : col.upper.round === "GF" ? (
-                  <>
-                    <div className="bracket-cell-label">Final</div>
-                    <Match
-                      slot={gfSlot}
-                      teams={teams}
-                      filterActive={filterActive}
-                      isInFilter={isInFilter}
-                    />
-                  </>
                 ) : (
                   <>
                     <div className="bracket-cell-label">{col.upper.round}</div>
@@ -57,6 +67,7 @@ export function Bracket({ event, teams, selectedTeams, hideDecided, mirror = fal
                         key={s}
                         slot={event.slots.find((slot) => slot.set === s)}
                         teams={teams}
+                        alliancesBySeed={alliancesBySeed}
                         filterActive={filterActive}
                         isInFilter={isInFilter}
                       />
@@ -75,6 +86,7 @@ export function Bracket({ event, teams, selectedTeams, hideDecided, mirror = fal
                         key={s}
                         slot={event.slots.find((slot) => slot.set === s)}
                         teams={teams}
+                        alliancesBySeed={alliancesBySeed}
                         filterActive={filterActive}
                         isInFilter={isInFilter}
                       />

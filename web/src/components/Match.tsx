@@ -1,15 +1,16 @@
 import type { ReactNode } from "react";
-import type { Slot, Team } from "@shared/types.ts";
+import type { Alliance, Slot, Team } from "@shared/types.ts";
 import { TeamCell } from "./TeamCell.tsx";
 
 interface Props {
   slot: Slot | undefined;
   teams: Record<string, Team>;
+  alliancesBySeed: Map<number, Alliance>;
   filterActive: boolean;
   isInFilter: (slot: Slot) => boolean;
 }
 
-export function Match({ slot, teams, filterActive, isInFilter }: Props): ReactNode {
+export function Match({ slot, teams, alliancesBySeed, filterActive, isInFilter }: Props): ReactNode {
   if (!slot) {
     return <div className="match match-empty" aria-hidden="true" />;
   }
@@ -28,19 +29,21 @@ export function Match({ slot, teams, filterActive, isInFilter }: Props): ReactNo
 
   return (
     <div className={className}>
-      <MatchRow
+      <AllianceBlock
         side="red"
         seed={slot.red.seed}
-        teamKeys={slot.red.teams}
+        playingTeams={slot.red.teams}
+        alliance={slot.red.seed != null ? alliancesBySeed.get(slot.red.seed) : undefined}
         score={slot.red.score}
         winner={slot.winner === "red"}
         played={slot.played}
         teams={teams}
       />
-      <MatchRow
+      <AllianceBlock
         side="blue"
         seed={slot.blue.seed}
-        teamKeys={slot.blue.teams}
+        playingTeams={slot.blue.teams}
+        alliance={slot.blue.seed != null ? alliancesBySeed.get(slot.blue.seed) : undefined}
         score={slot.blue.score}
         winner={slot.winner === "blue"}
         played={slot.played}
@@ -50,42 +53,55 @@ export function Match({ slot, teams, filterActive, isInFilter }: Props): ReactNo
   );
 }
 
-interface RowProps {
+interface AllianceBlockProps {
   side: "red" | "blue";
   seed: number | null;
-  teamKeys: string[];
+  playingTeams: string[];
+  alliance: Alliance | undefined;
   score: number | null;
   winner: boolean;
   played: boolean;
   teams: Record<string, Team>;
 }
 
-export function MatchRow({ side, seed, teamKeys, score, winner, played, teams }: RowProps): ReactNode {
+function AllianceBlock({
+  side,
+  seed,
+  playingTeams,
+  alliance,
+  score,
+  winner,
+  played,
+  teams,
+}: AllianceBlockProps): ReactNode {
+  // Show all 4 alliance picks when available; otherwise fall back to whatever
+  // teams are listed for this match. This handles incomplete alliance data
+  // and 3-team alliances at non-champs events.
+  const allFour = alliance?.picks ?? [];
+  const playingSet = new Set(playingTeams);
+  const teamList = allFour.length > 0 ? allFour : playingTeams;
+
   const className = [
-    "match-row",
-    `match-row-${side}`,
-    winner ? "match-row-winner" : "",
-    played && !winner ? "match-row-loser" : "",
+    "alliance",
+    `alliance-${side}`,
+    winner ? "alliance-winner" : "",
+    played && !winner ? "alliance-loser" : "",
   ]
     .filter(Boolean)
     .join(" ");
 
-  const slots: (string | null)[] = [teamKeys[0] ?? null, teamKeys[1] ?? null, teamKeys[2] ?? null];
-
   return (
     <div className={className}>
-      <span className="match-seed">{seed != null ? `A${seed}` : ""}</span>
-      {slots.map((tk, i) => {
-        if (!tk) return <span key={i} className="match-team match-team-empty" />;
-        const t = teams[tk];
-        if (!t) return <span key={i} className="match-team match-team-empty" />;
-        return (
-          <span key={tk} className="match-team">
-            <TeamCell team={t} />
-          </span>
-        );
-      })}
-      <span className="match-score">{score != null && score >= 0 ? score : ""}</span>
+      <span className="alliance-seed">{seed != null ? `A${seed}` : ""}</span>
+      <div className="alliance-teams">
+        {teamList.map((tk) => {
+          const t = teams[tk];
+          if (!t) return null;
+          const variant = playingSet.has(tk) || playingTeams.length === 0 ? "playing" : "backup";
+          return <TeamCell key={tk} team={t} variant={variant} />;
+        })}
+      </div>
+      <span className="alliance-score">{score != null && score >= 0 ? score : ""}</span>
     </div>
   );
 }

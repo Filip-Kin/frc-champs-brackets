@@ -5,9 +5,10 @@ import { usePopover } from "./PopoverProvider.tsx";
 
 interface Props {
   team: Team;
+  variant?: "playing" | "backup";
 }
 
-export function TeamCell({ team }: Props): ReactNode {
+export function TeamCell({ team, variant = "playing" }: Props): ReactNode {
   const { show, move } = usePopover();
 
   const onPointerEnter = (e: ReactPointerEvent<HTMLSpanElement>): void => {
@@ -19,7 +20,7 @@ export function TeamCell({ team }: Props): ReactNode {
 
   return (
     <span
-      className="team-cell"
+      className={`team-cell team-cell-${variant}`}
       data-team-cell
       onPointerEnter={onPointerEnter}
       onPointerMove={onPointerMove}

@@ -40,35 +40,36 @@
   font-weight: 700;
 }
 
-/* Mirrored brackets (right column) advance toward the page center.
-   We reverse the columns array in JSX so columns are already in mirrored
-   order; just flip the header alignment so the title is on the right. */
+/* Mirrored brackets (right column on wide screens) advance toward the page
+   center. Columns are reversed in JSX; we just flip the header. */
 .bracket-mirror .bracket-header {
   flex-direction: row-reverse;
 }
 
 /* #endregion */
 
-/* #region Bracket layout - 5 cols x 2 rows (UB / LB) */
+/* #region Bracket layout - 4 cols, GF spans both rows in col 4 */
 
 .bracket-layout {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 4px;
+  grid-template-columns: 1.6fr 1.4fr 1.4fr 1.6fr;
+  grid-template-rows: auto auto;
+  grid-auto-flow: column;
+  gap: 6px 5px;
   overflow-x: auto;
 }
 
-.bracket-col {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-width: 0;
+.bracket-col { display: contents; }
+
+.bracket-col-gf > .bracket-cell {
+  grid-row: 1 / span 2;
+  align-self: center;
 }
 
 .bracket-cell {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -83,24 +84,28 @@
   letter-spacing: 0.5px;
   color: var(--fg-3);
   padding: 0 2px;
-  margin-bottom: 1px;
+  margin-bottom: 0;
 }
 
 .bracket-mirror .bracket-cell-label {
   text-align: right;
 }
 
+@media (max-width: 800px) {
+  .bracket-mirror .bracket-cell-label { text-align: left; }
+}
+
 /* #endregion */
 
-/* #region Match cell - 2 rows of [seed | team1 | team2 | team3 | score] */
+/* #region Match cell - 2 alliance blocks, each: seed | teams stacked | score */
 
 .match {
   background: var(--bg-3);
   border: 1px solid var(--border);
   border-radius: 4px;
   overflow: hidden;
-  font-size: 0.85em;
-  line-height: 1.1;
+  font-size: 0.92em;
+  line-height: 1.2;
   transition: opacity 0.15s ease, outline-color 0.15s ease;
   outline: 1px solid transparent;
   outline-offset: -1px;
@@ -117,30 +122,29 @@
 .match-out-filter { opacity: 0.12; }
 .match-in-filter { outline-color: var(--accent); }
 
-.match-row {
+.alliance {
   display: grid;
-  grid-template-columns: 30px repeat(3, minmax(0, 1fr)) 30px;
+  grid-template-columns: 26px minmax(0, 1fr) 28px;
   align-items: stretch;
   border-bottom: 1px solid var(--border);
-  min-height: 22px;
 }
 
-.match-row:last-child { border-bottom: none; }
+.alliance:last-child { border-bottom: none; }
 
-.match-row-red .match-seed { border-left: 3px solid var(--red); }
-.match-row-blue .match-seed { border-left: 3px solid var(--blue); }
+.alliance-red .alliance-seed { border-left: 3px solid var(--red); }
+.alliance-blue .alliance-seed { border-left: 3px solid var(--blue); }
 
-.match-row-winner { background: var(--win-bg); }
-.match-row-winner .match-score { color: var(--win); font-weight: 700; }
+.alliance-winner { background: var(--win-bg); }
+.alliance-winner .alliance-score { color: var(--win); }
 
-.match-row-loser .match-team,
-.match-row-loser .match-seed,
-.match-row-loser .match-score {
+.alliance-loser .alliance-seed,
+.alliance-loser .alliance-teams,
+.alliance-loser .alliance-score {
   opacity: 0.5;
-  text-decoration: line-through;
 }
+.alliance-loser .alliance-teams .team-cell { text-decoration: line-through; }
 
-.match-seed {
+.alliance-seed {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -148,22 +152,17 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   font-size: 0.95em;
+  padding: 0 2px;
 }
 
-.match-team {
+.alliance-teams {
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding: 0 4px;
+  flex-direction: column;
+  padding: 2px 0;
   min-width: 0;
-  overflow: hidden;
 }
 
-.match-team-empty {
-  background: transparent;
-}
-
-.match-score {
+.alliance-score {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -175,17 +174,17 @@
 
 /* #endregion */
 
-/* #region Team cell */
+/* #region Team cell (now stacked one per row inside an alliance) */
 
 .team-cell {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   cursor: default;
   min-width: 0;
-  overflow: hidden;
   white-space: nowrap;
-  padding: 0 2px;
+  padding: 0 6px;
+  line-height: 1.25;
   border-radius: 2px;
 }
 
@@ -193,16 +192,18 @@
   background: rgba(255, 255, 255, 0.06);
 }
 
+.team-cell-playing .team-num { font-weight: 700; }
+.team-cell-backup .team-num { font-weight: 400; color: var(--fg-2); }
+
 .team-num {
-  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  font-size: 0.9em;
+  font-size: 0.95em;
 }
 
 .flag {
   display: inline-block;
-  width: 1.2em;
-  height: 0.85em;
+  width: 1em;
+  height: 0.75em;
   vertical-align: middle;
   flex-shrink: 0;
   border: 0.5px solid rgba(255, 255, 255, 0.15);

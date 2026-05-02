@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import type { DivisionEvent, Snapshot } from "@shared/types.ts";
 import { Bracket } from "./Bracket.tsx";
+import { useMediaQuery } from "../hooks/useMediaQuery.ts";
 
 interface Props {
   snapshot: Snapshot;
@@ -10,11 +11,12 @@ interface Props {
 }
 
 export function DivisionGrid({ snapshot, selectedTeams, hideDecided, zoom }: Props): ReactNode {
+  const isWide = useMediaQuery("(min-width: 800px)");
   const style = { "--zoom": String(zoom) } as CSSProperties;
   return (
     <section className="divisions" style={style}>
       {snapshot.divisions.map((ev: DivisionEvent | null, i: number) => {
-        const mirror = i % 2 === 1; // every second bracket is in the right column
+        const mirror = isWide && i % 2 === 1;
         if (!ev) {
           return (
             <div key={`empty-${i}`} className="bracket bracket-missing">
