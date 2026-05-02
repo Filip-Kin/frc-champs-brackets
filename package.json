@@ -1,0 +1,16 @@
+{
+  "name": "frc-champs-brackets",
+  "version": "1.0.0",
+  "description": "Live FRC World Championship bracket display from TBA",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

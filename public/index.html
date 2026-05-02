@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>FRC Champs Brackets</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <h1>FRC World Championship — <span id="year"></span></h1>
+    <div class="meta">
+      <span id="status" class="status status-pending">connecting…</span>
+      <span id="updated"></span>
+    </div>
+  </header>
+
+  <section id="einstein-wrap" hidden>
+    <h2>Einstein</h2>
+    <div id="einstein" class="bracket einstein"></div>
+  </section>
+
+  <section id="divisions" class="grid"></section>
+
+  <div id="popover" class="popover" hidden></div>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
