@@ -124,12 +124,16 @@
 .match-slot[data-set="12"] { grid-column: var(--col-rf); grid-row: 10 / span 4; align-self: center; }
 .match-slot[data-set="13"] { grid-column: var(--col-lbf); grid-row: 10 / span 4; align-self: center; }
 
-/* Grand final spans the full bracket vertically and centers itself */
+/* Grand final spans the full bracket vertically and centers itself.
+   It also gets a font-size bump since it's the only thing in its column. */
 .match-slot[data-set="gf"] {
   grid-column: var(--col-gf);
   grid-row: 1 / span 13;
   align-self: center;
 }
+
+.match-slot-gf .match { font-size: 1.1em; }
+.match-slot-gf .match-label { font-size: 0.8em; }
 
 /* #endregion */
 
