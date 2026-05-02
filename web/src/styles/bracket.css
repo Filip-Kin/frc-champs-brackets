@@ -30,6 +30,11 @@
   font-size: 1em;
   font-weight: 700;
 }
+.bracket-name a {
+  color: inherit;
+  text-decoration: none;
+}
+.bracket-name a:hover { text-decoration: underline; }
 
 .bracket-winner-badge {
   font-size: 0.75em;
@@ -99,7 +104,10 @@
   color: var(--fg-3);
   padding: 0 4px;
   letter-spacing: 0.3px;
+  text-decoration: none;
+  display: block;
 }
+.match-label:hover { color: var(--fg); text-decoration: underline; }
 
 .bracket-mirror .match-label { text-align: right; }
 
@@ -172,8 +180,13 @@
 
 .alliance:last-child { border-bottom: none; }
 
-.alliance-red .alliance-seed { border-left: 3px solid var(--red); }
-.alliance-blue .alliance-seed { border-left: 3px solid var(--blue); }
+.alliance-red .alliance-seed { border-inline-start: 3px solid var(--red); }
+.alliance-blue .alliance-seed { border-inline-start: 3px solid var(--blue); }
+
+/* On mirrored brackets the alliance row is reversed: score on the left,
+   seed on the right. Inner content (team rows) keeps its LTR direction. */
+.bracket-mirror .alliance { direction: rtl; }
+.bracket-mirror .alliance > * { direction: ltr; }
 
 .alliance-winner { background: var(--win-bg); }
 .alliance-winner .alliance-score { color: var(--win); }
@@ -227,6 +240,8 @@
   padding: 0 6px;
   line-height: 1.25;
   border-radius: 2px;
+  color: inherit;
+  text-decoration: none;
 }
 
 .team-cell:hover { background: rgba(255, 255, 255, 0.06); }
@@ -255,6 +270,15 @@
   background-size: cover;
   background-position: center;
   line-height: 1;
+}
+
+/* On mobile, hide alliance score because there isn't enough horizontal
+   room and the score number was overlapping the team list. */
+@media (max-width: 800px) {
+  .alliance {
+    grid-template-columns: 26px minmax(0, 1fr);
+  }
+  .alliance-score { display: none; }
 }
 
 /* #endregion */

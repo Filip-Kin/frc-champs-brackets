@@ -56,10 +56,17 @@ export function Bracket({ event, teams, selectedTeams, hideDecided, mirror = fal
     roundDecided[r] = isRoundDecided(event.slots, setsInRound);
   }
 
+  const eventUrl = `https://www.thebluealliance.com/event/${event.key}`;
+  const matchUrl = (set: number): string =>
+    `https://www.thebluealliance.com/match/${event.key}_sf${set}m1`;
+  const gfUrl = `https://www.thebluealliance.com/match/${event.key}_f1m1`;
+
   return (
     <article className={`bracket${mirror ? " bracket-mirror" : ""}`}>
       <header className="bracket-header">
-        <h3 className="bracket-name">{event.name}</h3>
+        <h3 className="bracket-name">
+          <a href={eventUrl} target="_blank" rel="noopener noreferrer">{event.name}</a>
+        </h3>
         {winner ? <span className="bracket-winner-badge">A{winner.seed}</span> : null}
       </header>
       <div className="bracket-layout">
@@ -72,7 +79,14 @@ export function Bracket({ event, teams, selectedTeams, hideDecided, mirror = fal
               data-set={slot.set}
               aria-hidden={hidden ? "true" : undefined}
             >
-              <div className="match-label">Match {slot.set}</div>
+              <a
+                className="match-label"
+                href={matchUrl(slot.set)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Match {slot.set}
+              </a>
               <Match
                 slot={slot}
                 teams={teams}
@@ -85,7 +99,14 @@ export function Bracket({ event, teams, selectedTeams, hideDecided, mirror = fal
         })}
         {gfSlot ? (
           <div className="match-slot match-slot-gf" data-set="gf">
-            <div className="match-label">Final</div>
+            <a
+              className="match-label"
+              href={gfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Final
+            </a>
             <Match
               slot={gfSlot}
               teams={teams}
