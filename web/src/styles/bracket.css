@@ -90,8 +90,7 @@
 }
 
 .match-slot-hidden {
-  visibility: hidden;
-  pointer-events: none;
+  display: none;
 }
 
 .match-label {
