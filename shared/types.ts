@@ -13,7 +13,7 @@ export interface Team {
   city: string | null;
   state_prov: string | null;
   country: string | null;
-  avatar: string | null;
+  hasAvatar: boolean;
   flag: Flag;
 }
 

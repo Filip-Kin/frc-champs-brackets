@@ -1,125 +1,91 @@
 import type { ReactNode } from "react";
 import type { DivisionEvent, Slot, Team } from "@shared/types.ts";
-import { COLUMNS, advancingSeeds, isRoundDecided } from "../lib/bracket.ts";
+import { COLUMNS, buildGrandFinalSlot, isRoundDecided } from "../lib/bracket.ts";
 import { Match } from "./Match.tsx";
-import { GrandFinal } from "./GrandFinal.tsx";
-import { CollapsedRoundBanner } from "./CollapsedRoundBanner.tsx";
 
 interface Props {
   event: DivisionEvent;
   teams: Record<string, Team>;
   selectedTeams: ReadonlySet<string>;
   hideDecided: boolean;
+  mirror?: boolean;
 }
 
-export function Bracket({ event, teams, selectedTeams, hideDecided }: Props): ReactNode {
+export function Bracket({ event, teams, selectedTeams, hideDecided, mirror = false }: Props): ReactNode {
   const winner = event.alliances.find((a) => a.status === "won") ?? null;
   const filterActive = selectedTeams.size > 0;
 
-  const isTeamInFilter = (teamKey: string): boolean => selectedTeams.has(teamKey);
   const isInFilter = (slot: Slot): boolean =>
     [...slot.red.teams, ...slot.blue.teams].some((t) => selectedTeams.has(t));
 
-  const slotBySet: Record<number, Slot | undefined> = {};
-  for (const s of event.slots) slotBySet[s.set] = s;
+  const cols = mirror ? [...COLUMNS].reverse() : COLUMNS;
+  const gfSlot = buildGrandFinalSlot(event.grandFinal.games);
 
   return (
-    <article className="bracket">
+    <article className={`bracket${mirror ? " bracket-mirror" : ""}`}>
       <header className="bracket-header">
         <h3 className="bracket-name">{event.name}</h3>
-        {winner ? <span className="bracket-winner-badge">A{winner.seed} won</span> : null}
+        {winner ? <span className="bracket-winner-badge">A{winner.seed}</span> : null}
       </header>
       <div className="bracket-layout">
-        {COLUMNS.map((col) => (
-          <div key={col.index} className="bracket-col">
-            <BracketSlot
-              kind="upper"
-              col={col}
-              event={event}
-              teams={teams}
-              hideDecided={hideDecided}
-              filterActive={filterActive}
-              isInFilter={isInFilter}
-              isTeamInFilter={isTeamInFilter}
-            />
-            <BracketSlot
-              kind="lower"
-              col={col}
-              event={event}
-              teams={teams}
-              hideDecided={hideDecided}
-              filterActive={filterActive}
-              isInFilter={isInFilter}
-              isTeamInFilter={isTeamInFilter}
-            />
-          </div>
-        ))}
+        {cols.map((col) => {
+          const upperDecided = col.upper && col.upper.round !== "GF" && isRoundDecided(event.slots, col.upper.sets);
+          const lowerDecided = col.lower && isRoundDecided(event.slots, col.lower.sets);
+          const hideUpper = hideDecided && upperDecided;
+          const hideLower = hideDecided && lowerDecided;
+
+          return (
+            <div key={col.index} className="bracket-col">
+              <div className="bracket-cell">
+                {!col.upper || hideUpper ? (
+                  <div className="bracket-cell-empty" aria-hidden="true" />
+                ) : col.upper.round === "GF" ? (
+                  <>
+                    <div className="bracket-cell-label">Final</div>
+                    <Match
+                      slot={gfSlot}
+                      teams={teams}
+                      filterActive={filterActive}
+                      isInFilter={isInFilter}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <div className="bracket-cell-label">{col.upper.round}</div>
+                    {col.upper.sets.map((s) => (
+                      <Match
+                        key={s}
+                        slot={event.slots.find((slot) => slot.set === s)}
+                        teams={teams}
+                        filterActive={filterActive}
+                        isInFilter={isInFilter}
+                      />
+                    ))}
+                  </>
+                )}
+              </div>
+              <div className="bracket-cell">
+                {!col.lower || hideLower ? (
+                  <div className="bracket-cell-empty" aria-hidden="true" />
+                ) : (
+                  <>
+                    <div className="bracket-cell-label">{col.lower.round}</div>
+                    {col.lower.sets.map((s) => (
+                      <Match
+                        key={s}
+                        slot={event.slots.find((slot) => slot.set === s)}
+                        teams={teams}
+                        filterActive={filterActive}
+                        isInFilter={isInFilter}
+                      />
+                    ))}
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     </article>
-  );
-}
-
-interface SlotProps {
-  kind: "upper" | "lower";
-  col: (typeof COLUMNS)[number];
-  event: DivisionEvent;
-  teams: Record<string, Team>;
-  hideDecided: boolean;
-  filterActive: boolean;
-  isInFilter: (slot: Slot) => boolean;
-  isTeamInFilter: (teamKey: string) => boolean;
-}
-
-function BracketSlot({
-  kind,
-  col,
-  event,
-  teams,
-  hideDecided,
-  filterActive,
-  isInFilter,
-  isTeamInFilter,
-}: SlotProps): ReactNode {
-  const cell = kind === "upper" ? col.upper : col.lower;
-  if (!cell) return <div className="bracket-cell bracket-cell-empty" aria-hidden="true" />;
-
-  // Grand Final lane
-  if (cell.round === "GF") {
-    return (
-      <div className="bracket-cell">
-        <GrandFinal
-          games={event.grandFinal.games}
-          teams={teams}
-          filterActive={filterActive}
-          isTeamInFilter={isTeamInFilter}
-        />
-      </div>
-    );
-  }
-
-  const roundLabel = cell.round;
-  const decided = hideDecided && isRoundDecided(event.slots, cell.sets);
-  if (decided) {
-    const seeds = advancingSeeds(event.slots, cell.sets);
-    return (
-      <div className="bracket-cell bracket-cell-collapsed">
-        <CollapsedRoundBanner label={roundLabel} advancing={seeds} />
-      </div>
-    );
-  }
-
-  return (
-    <div className="bracket-cell">
-      <div className="bracket-cell-label">{roundLabel}</div>
-      {cell.sets.map((s) => (
-        <Match
-          key={s}
-          slot={event.slots.find((slot) => slot.set === s)}
-          teams={teams}
-          filterActive={filterActive}
-          isInFilter={isInFilter}
-        />
-      ))}
-    </div>
   );
 }

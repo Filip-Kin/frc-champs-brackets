@@ -83,7 +83,7 @@ async function buildSnapshot(year: number): Promise<Snapshot> {
       const k = teamKeysArr[i];
       if (!k) continue;
       try {
-        const { expires: _expires, ...pub } = await getTeam(k, year);
+        const { expires: _expires, avatarPng: _avatarPng, ...pub } = await getTeam(k, year);
         teams[k] = pub;
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
@@ -95,7 +95,7 @@ async function buildSnapshot(year: number): Promise<Snapshot> {
           city: null,
           state_prov: null,
           country: null,
-          avatar: null,
+          hasAvatar: false,
           flag: { kind: null, code: null, label: "Unknown" },
         };
       }

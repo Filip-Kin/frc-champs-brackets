@@ -1,4 +1,5 @@
 import { addSseClient, getSnapshot, getStats, getTargetYear, pollLoop, removeSseClient } from "./snapshot.ts";
+import { getCachedAvatar } from "./tba.ts";
 import { file } from "bun";
 import { join, resolve, normalize } from "node:path";
 import { existsSync } from "node:fs";
@@ -92,6 +93,18 @@ const server = Bun.serve({
       const snap = getSnapshot();
       if (!snap) return jsonResponse({ error: "snapshot not ready" }, 503);
       return jsonResponse(snap);
+    }
+
+    const avatarMatch = path.match(/^\/api\/avatar\/(frc\d+)\.png$/);
+    if (avatarMatch) {
+      const png = getCachedAvatar(avatarMatch[1] as string);
+      if (!png) return new Response("", { status: 404 });
+      return new Response(new Uint8Array(png), {
+        headers: {
+          "Content-Type": "image/png",
+          "Cache-Control": "public, max-age=86400",
+        },
+      });
     }
 
     return serveStatic(path);

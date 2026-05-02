@@ -9,8 +9,6 @@ interface Props {
   isInFilter: (slot: Slot) => boolean;
 }
 
-const PLACEHOLDER_TEAMS: string[] = [];
-
 export function Match({ slot, teams, filterActive, isInFilter }: Props): ReactNode {
   if (!slot) {
     return <div className="match match-empty" aria-hidden="true" />;
@@ -33,7 +31,7 @@ export function Match({ slot, teams, filterActive, isInFilter }: Props): ReactNo
       <MatchRow
         side="red"
         seed={slot.red.seed}
-        teamKeys={slot.red.teams.length ? slot.red.teams : PLACEHOLDER_TEAMS}
+        teamKeys={slot.red.teams}
         score={slot.red.score}
         winner={slot.winner === "red"}
         played={slot.played}
@@ -42,7 +40,7 @@ export function Match({ slot, teams, filterActive, isInFilter }: Props): ReactNo
       <MatchRow
         side="blue"
         seed={slot.blue.seed}
-        teamKeys={slot.blue.teams.length ? slot.blue.teams : PLACEHOLDER_TEAMS}
+        teamKeys={slot.blue.teams}
         score={slot.blue.score}
         winner={slot.winner === "blue"}
         played={slot.played}
@@ -62,7 +60,7 @@ interface RowProps {
   teams: Record<string, Team>;
 }
 
-function MatchRow({ side, seed, teamKeys, score, winner, played, teams }: RowProps): ReactNode {
+export function MatchRow({ side, seed, teamKeys, score, winner, played, teams }: RowProps): ReactNode {
   const className = [
     "match-row",
     `match-row-${side}`,
@@ -72,20 +70,21 @@ function MatchRow({ side, seed, teamKeys, score, winner, played, teams }: RowPro
     .filter(Boolean)
     .join(" ");
 
+  const slots: (string | null)[] = [teamKeys[0] ?? null, teamKeys[1] ?? null, teamKeys[2] ?? null];
+
   return (
     <div className={className}>
       <span className="match-seed">{seed != null ? `A${seed}` : ""}</span>
-      <div className="match-teams">
-        {teamKeys.length ? (
-          teamKeys.map((tk) => {
-            const t = teams[tk];
-            if (!t) return null;
-            return <TeamCell key={tk} team={t} />;
-          })
-        ) : (
-          <span className="match-team-placeholder">-</span>
-        )}
-      </div>
+      {slots.map((tk, i) => {
+        if (!tk) return <span key={i} className="match-team match-team-empty" />;
+        const t = teams[tk];
+        if (!t) return <span key={i} className="match-team match-team-empty" />;
+        return (
+          <span key={tk} className="match-team">
+            <TeamCell team={t} />
+          </span>
+        );
+      })}
       <span className="match-score">{score != null && score >= 0 ? score : ""}</span>
     </div>
   );

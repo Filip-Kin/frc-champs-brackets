@@ -51,8 +51,13 @@ export async function tbaFetch<T>(path: string): Promise<T> {
 
 // #region Team metadata cache
 
-interface TeamCacheEntry extends Team {
+export interface TeamCacheEntry extends Team {
+  avatarPng: Uint8Array | null;
   expires: number;
+}
+
+export function getCachedAvatar(teamKey: string): Uint8Array | null {
+  return teamCache.get(teamKey)?.avatarPng ?? null;
 }
 
 const teamCache = new Map<string, TeamCacheEntry>();
@@ -83,9 +88,14 @@ export async function getTeam(teamKey: string, year: number): Promise<TeamCacheE
   ]);
 
   const avatarMedia = media.find((m) => m.type === "avatar");
-  const avatar = avatarMedia?.details?.base64Image
-    ? `data:image/png;base64,${avatarMedia.details.base64Image}`
-    : null;
+  let avatarPng: Uint8Array | null = null;
+  if (avatarMedia?.details?.base64Image) {
+    try {
+      avatarPng = Uint8Array.from(atob(avatarMedia.details.base64Image), (c) => c.charCodeAt(0));
+    } catch {
+      avatarPng = null;
+    }
+  }
 
   const flag = resolveFlag(simple.country, simple.state_prov);
 
@@ -96,7 +106,8 @@ export async function getTeam(teamKey: string, year: number): Promise<TeamCacheE
     city: simple.city,
     state_prov: simple.state_prov,
     country: simple.country,
-    avatar,
+    hasAvatar: !!avatarPng,
+    avatarPng,
     flag,
     expires: now + TEAM_TTL_MS,
   };

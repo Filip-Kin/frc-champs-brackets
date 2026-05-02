@@ -4,9 +4,8 @@
   background: var(--bg-2);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 6px 6px 8px 6px;
+  padding: 6px 8px 8px 8px;
   min-width: 0;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -21,7 +20,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 4px 6px 4px;
+  padding: 0 2px 6px 2px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 6px;
 }
@@ -38,7 +37,14 @@
   border-radius: 3px;
   background: var(--win);
   color: #fff;
-  font-weight: 600;
+  font-weight: 700;
+}
+
+/* Mirrored brackets (right column) advance toward the page center.
+   We reverse the columns array in JSX so columns are already in mirrored
+   order; just flip the header alignment so the title is on the right. */
+.bracket-mirror .bracket-header {
+  flex-direction: row-reverse;
 }
 
 /* #endregion */
@@ -48,10 +54,8 @@
 .bracket-layout {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  grid-auto-rows: min-content;
-  gap: 3px;
+  gap: 4px;
   overflow-x: auto;
-  padding-bottom: 2px;
 }
 
 .bracket-col {
@@ -70,10 +74,7 @@
 
 .bracket-cell-empty {
   visibility: hidden;
-}
-
-.bracket-cell-collapsed {
-  display: block;
+  min-height: 1px;
 }
 
 .bracket-cell-label {
@@ -85,14 +86,15 @@
   margin-bottom: 1px;
 }
 
+.bracket-mirror .bracket-cell-label {
+  text-align: right;
+}
+
 /* #endregion */
 
-/* #region Match cell - 3x2 grid */
+/* #region Match cell - 2 rows of [seed | team1 | team2 | team3 | score] */
 
 .match {
-  display: grid;
-  grid-template-columns: auto repeat(3, minmax(0, 1fr)) auto;
-  grid-template-rows: 1fr 1fr;
   background: var(--bg-3);
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -102,80 +104,73 @@
   transition: opacity 0.15s ease, outline-color 0.15s ease;
   outline: 1px solid transparent;
   outline-offset: -1px;
+  display: flex;
+  flex-direction: column;
 }
 
 .match-empty {
   background: transparent;
   border-color: transparent;
+  min-height: 30px;
 }
 
 .match-out-filter { opacity: 0.12; }
 .match-in-filter { outline-color: var(--accent); }
 
 .match-row {
-  display: contents;
-}
-
-.match-row > .match-seed,
-.match-row > .match-teams,
-.match-row > .match-score {
-  background: transparent;
+  display: grid;
+  grid-template-columns: 30px repeat(3, minmax(0, 1fr)) 30px;
+  align-items: stretch;
   border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding: 2px 4px;
-  min-width: 0;
+  min-height: 22px;
 }
 
-.match-row.match-row-red > .match-seed { border-left: 3px solid var(--red); }
-.match-row.match-row-blue > .match-seed { border-left: 3px solid var(--blue); }
+.match-row:last-child { border-bottom: none; }
 
-.match-row-winner > .match-seed,
-.match-row-winner > .match-teams,
-.match-row-winner > .match-score {
-  background: var(--win-bg);
-  font-weight: 600;
-}
+.match-row-red .match-seed { border-left: 3px solid var(--red); }
+.match-row-blue .match-seed { border-left: 3px solid var(--blue); }
 
-.match-row-loser > .match-seed,
-.match-row-loser > .match-teams,
-.match-row-loser > .match-score {
-  opacity: 0.55;
+.match-row-winner { background: var(--win-bg); }
+.match-row-winner .match-score { color: var(--win); font-weight: 700; }
+
+.match-row-loser .match-team,
+.match-row-loser .match-seed,
+.match-row-loser .match-score {
+  opacity: 0.5;
   text-decoration: line-through;
 }
 
-.match-row:nth-of-type(2) > .match-seed,
-.match-row:nth-of-type(2) > .match-teams,
-.match-row:nth-of-type(2) > .match-score {
-  border-bottom: none;
-}
-
 .match-seed {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--fg-2);
   font-weight: 700;
-  font-size: 0.95em;
   font-variant-numeric: tabular-nums;
-  min-width: 22px;
-  justify-content: center;
+  font-size: 0.95em;
+}
+
+.match-team {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.match-team-empty {
+  background: transparent;
 }
 
 .match-score {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 6px;
   color: var(--fg);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  min-width: 24px;
-  justify-content: flex-end;
-  padding-right: 6px;
-}
-
-.match-teams {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
-}
-
-.match-team-placeholder {
-  color: var(--fg-3);
 }
 
 /* #endregion */
@@ -186,16 +181,16 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  padding: 0 4px;
   cursor: default;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
+  padding: 0 2px;
+  border-radius: 2px;
 }
 
 .team-cell:hover {
   background: rgba(255, 255, 255, 0.06);
-  border-radius: 2px;
 }
 
 .team-num {
@@ -214,124 +209,12 @@
   border-radius: 1px;
 }
 
-.flag-state {
-  object-fit: cover;
-}
+.flag-state { object-fit: cover; }
 
 .flag-country.fi {
   background-size: cover;
   background-position: center;
   line-height: 1;
-}
-
-/* #endregion */
-
-/* #region Grand Final */
-
-.gf {
-  background: var(--bg-3);
-  border: 1px solid var(--accent);
-  border-radius: 4px;
-  padding: 4px 5px;
-  font-size: 0.8em;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-
-.gf-title {
-  font-size: 0.85em;
-  color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 700;
-}
-
-.gf-pending {
-  color: var(--fg-3);
-}
-
-.gf-game {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  flex-wrap: wrap;
-  transition: opacity 0.15s ease;
-}
-
-.gf-game-out { opacity: 0.18; }
-
-.gf-label {
-  color: var(--fg-2);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  min-width: 18px;
-}
-
-.gf-side {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  min-width: 0;
-}
-
-.gf-side-winner { color: var(--win); font-weight: 700; }
-.gf-side-loser { opacity: 0.55; text-decoration: line-through; }
-
-.gf-side-red .gf-seed { border-left: 2px solid var(--red); padding-left: 4px; }
-.gf-side-blue .gf-seed { border-left: 2px solid var(--blue); padding-left: 4px; }
-
-.gf-seed {
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.gf-teams {
-  display: inline-flex;
-  gap: 2px;
-}
-
-.gf-score {
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  min-width: 22px;
-}
-
-.gf-vs {
-  color: var(--fg-3);
-  font-size: 0.85em;
-}
-
-/* #endregion */
-
-/* #region Collapsed round banner */
-
-.round-banner {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 6px;
-  background: var(--bg-3);
-  border: 1px dashed var(--border);
-  border-radius: 4px;
-  font-size: 0.7em;
-  color: var(--fg-2);
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.round-banner-label {
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--fg-3);
-  font-weight: 700;
-}
-
-.round-banner-seeds {
-  font-variant-numeric: tabular-nums;
-  color: var(--win);
-  font-weight: 600;
 }
 
 /* #endregion */

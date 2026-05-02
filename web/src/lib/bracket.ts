@@ -1,4 +1,4 @@
-import type { Slot, BracketRoundLabel } from "@shared/types.ts";
+import type { Slot, BracketRoundLabel, GrandFinalGame } from "@shared/types.ts";
 
 // Visual layout: 4 columns of pairs (UB on top, LB on bottom) plus a GF column.
 //   col 1: UB R1 (sets 1-4)   /  LB R1 (sets 5-6)
@@ -34,4 +34,29 @@ export function advancingSeeds(slots: Slot[], sets: number[]): number[] {
     if (seed != null) out.push(seed);
   }
   return out;
+}
+
+// Synthesize a Slot from BO3 grand-final games so the GF can render with
+// the same Match component as the rest of the bracket. Score is series wins.
+export function buildGrandFinalSlot(games: GrandFinalGame[]): Slot | undefined {
+  if (!games.length) return undefined;
+  const first = games[0];
+  if (!first) return undefined;
+
+  const redWins = games.filter((g) => g.winner === "red").length;
+  const blueWins = games.filter((g) => g.winner === "blue").length;
+  const decided = redWins >= 2 || blueWins >= 2;
+  const winner = redWins >= 2 ? "red" : blueWins >= 2 ? "blue" : null;
+
+  return {
+    id: "gf",
+    level: "sf",
+    set: 0,
+    round: "UB Final",
+    played: decided,
+    red: { seed: first.red.seed, teams: first.red.teams, score: redWins },
+    blue: { seed: first.blue.seed, teams: first.blue.teams, score: blueWins },
+    winner,
+    time: null,
+  };
 }

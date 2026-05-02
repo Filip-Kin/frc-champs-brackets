@@ -33,7 +33,7 @@ export function Popover(): ReactNode {
 
   return createPortal(
     <div ref={ref} className="popover" style={{ left: `${x}px`, top: `${y}px` }}>
-      {t.avatar ? <img className="popover-avatar" src={t.avatar} alt="" /> : null}
+      {t.hasAvatar ? <img className="popover-avatar" src={`/api/avatar/${t.key}.png`} alt="" /> : null}
       <div className="popover-body">
         <div className="popover-line">
           <span className="popover-num">{t.number}</span>{" "}
