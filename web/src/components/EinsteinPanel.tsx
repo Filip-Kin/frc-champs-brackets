@@ -17,12 +17,7 @@ export function EinsteinPanel({ snapshot, selectedTeams, hideDecided }: Props): 
 
   return (
     <section className="einstein-wrap">
-      <h2>
-        Einstein
-        {preview.isPreview ? (
-          <span className="einstein-preview-tag">first round predicted from division winners</span>
-        ) : null}
-      </h2>
+      <h2>Einstein</h2>
       <Bracket
         event={preview.einstein}
         teams={snapshot.teams}

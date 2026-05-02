@@ -116,19 +116,6 @@
   letter-spacing: 1.2px;
   color: var(--accent);
   text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.einstein-preview-tag {
-  font-size: 11px;
-  letter-spacing: 0.4px;
-  color: var(--fg-3);
-  text-transform: none;
-  font-weight: 400;
-  font-style: italic;
 }
 
 /* #endregion */
